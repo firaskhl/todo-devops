@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Ahmedayachi98/todo-devops/tree/ahmed'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'npm test'
+            }
+        }
+        stage('Dependency-Check') {
+            steps {
+                // Execute OWASP Dependency-Check for 
+                dependencyCheck (
+                    dependencyCheck additionalArgiments : '--scan ./ --disableYarnAudit --disableNodeAudit',
+                    odcIntallation: "owasp-dp-check"
+                    dependencyCheckPublisher pattern :
+                    '**/dependency-check-report.xml'
+                )
+            }
+        }
+        stage('Deploy') {
+            steps {
+            }
+        }
+    }
+
+    post {
+        always {
+            // Archive the built artifacts
+            archiveArtifacts artifacts: 'build/**'
+        }
+    }
+}
